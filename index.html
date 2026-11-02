@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ngoma — billetterie et contrôle d'accès</title>
+<meta name="description" content="Billetterie en ligne d'un festival : choix des billets, paiement Mobile Money, e-billet avec QR code, tableau de bord organisateur et contrôle d'accès par scan.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23141210'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23ff4d2e' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ffd23f'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#f6f1e9;--ink:#141210;--mute:#7a7268;--line:#e4dccf;--acc:#ff4d2e;--yel:#ffd23f;--grn:#1f9d55;--paper:#fff}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--ink);font:400 14.5px/1.5 'Figtree',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}button{cursor:pointer}
+.disp{font-family:'Big Shoulders Display',sans-serif;text-transform:uppercase;letter-spacing:.01em}
+nav{position:sticky;top:0;z-index:20;display:flex;justify-content:center;gap:4px;padding:10px;background:#f6f1e9e6;backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+nav button{border:0;background:none;border-radius:100px;padding:8px 16px;font-weight:700;color:var(--mute)}
+nav button.on{background:var(--ink);color:#fff}
+.view{display:none}.view.on{display:block}
+/* page publique */
+.hero{background:var(--ink);color:#fff;position:relative;overflow:hidden}
+.hero .in{max-width:1180px;margin:auto;padding:60px 28px 70px;display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center;position:relative;z-index:1}
+.hero h1{font:900 clamp(70px,11vw,150px)/.82 'Big Shoulders Display';text-transform:uppercase}
+.hero h1 span{color:var(--acc);display:block}
+.hero .meta{display:flex;gap:26px;margin-top:22px;flex-wrap:wrap}
+.hero .meta b{display:block;font-size:20px}.hero .meta small{color:#b9b1a5}
+.poster{position:absolute;inset:0;opacity:.95}
+.lineup{display:grid;gap:6px}
+.lineup div{display:flex;justify-content:space-between;border-bottom:1px solid #ffffff22;padding:8px 0;font:700 24px 'Big Shoulders Display';text-transform:uppercase}
+.lineup small{font:500 13px 'Figtree';color:#b9b1a5;text-transform:none;align-self:center}
+.wrap{max-width:1180px;margin:auto;padding:40px 28px}
+.buy{display:grid;grid-template-columns:1.3fr 1fr;gap:28px;align-items:start}
+.buy h2{font:900 44px/1 'Big Shoulders Display';text-transform:uppercase;margin-bottom:14px}
+.tk{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:var(--paper);border:1.5px solid var(--line);border-radius:16px;padding:16px 18px;margin-bottom:10px;position:relative}
+.tk.so{opacity:.5}
+.tk b{font-size:17px}.tk small{display:block;color:var(--mute)}
+.tk .pr{font:900 26px 'Big Shoulders Display'}
+.tk .left{font-size:12px;font-weight:700;color:var(--acc)}
+.qty{display:flex;align-items:center;gap:10px}
+.qty button{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--ink);background:none;font-size:18px;font-weight:700}
+.qty b{min-width:18px;text-align:center}
+.cart{background:var(--paper);border-radius:18px;padding:22px;position:sticky;top:76px;border:1.5px solid var(--ink)}
+.cart h3{font:900 28px 'Big Shoulders Display';text-transform:uppercase}
+.cl{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line)}
+.tot{display:flex;justify-content:space-between;align-items:baseline;margin:12px 0}
+.tot b{font:900 34px 'Big Shoulders Display'}
+.f{display:grid;gap:4px;font-size:12.5px;color:var(--mute);margin-bottom:10px}
+.f input{border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);font-size:14.5px}
+.pm{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.pm button{border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px;font-weight:700;display:flex;gap:8px;align-items:center}
+.pm button.on{border-color:var(--ink)}
+.pm i{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-style:normal;font-size:9px;font-weight:900}
+.big{width:100%;border:0;background:var(--acc);color:#fff;border-radius:14px;padding:16px;font-weight:800;font-size:16px}
+.big:disabled{opacity:.35}
+.spin{width:40px;height:40px;border:4px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:sp 1s linear infinite;margin:16px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* e-billets */
+.tix{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:14px}
+.et{background:var(--ink);color:#fff;border-radius:20px;overflow:hidden;position:relative;animation:in .6s both}
+@keyframes in{from{transform:translateY(20px) rotate(-2deg);opacity:0}}
+.et .top{padding:18px 20px;background:var(--acc);position:relative}
+.et .top b{font:900 34px/.9 'Big Shoulders Display';text-transform:uppercase;display:block}
+.et .top small{opacity:.85}
+.et .cut{height:0;border-top:2px dashed #ffffff44;margin:0 16px;position:relative}
+.et .cut::before,.et .cut::after{content:"";position:absolute;top:-12px;width:24px;height:24px;border-radius:50%;background:var(--bg)}
+.et .cut::before{left:-28px}.et .cut::after{right:-28px}
+.et .bd{padding:18px 20px;display:grid;grid-template-columns:1fr 130px;gap:14px;align-items:center}
+.et .qr{background:#fff;border-radius:10px;padding:8px}
+.et .qr img,.et .qr canvas{width:100%;display:block;image-rendering:pixelated}
+.et .kv{font-size:12.5px;color:#b9b1a5}.et .kv b{display:block;color:#fff;font-size:14px;margin-bottom:6px}
+.et.used::after{content:"UTILISÉ";position:absolute;right:16px;top:70px;font:900 30px 'Big Shoulders Display';color:var(--yel);border:3px solid var(--yel);padding:2px 10px;transform:rotate(-12deg);border-radius:6px}
+/* tableau de bord */
+.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kp div{background:var(--paper);border-radius:16px;padding:16px}
+.kp span{color:var(--mute);font-size:12.5px}.kp b{display:block;font:900 38px/1.1 'Big Shoulders Display'}
+.two{display:grid;grid-template-columns:1.5fr 1fr;gap:12px}
+.card{background:var(--paper);border-radius:16px;padding:18px}
+.card h3{font-size:15px;margin-bottom:12px}
+.cap{margin-bottom:12px}
+.cap .h{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.cap i{display:block;height:12px;border-radius:6px;background:#efe8dc;overflow:hidden}.cap i u{display:block;height:100%;border-radius:6px}
+.chart svg{width:100%;height:auto}
+.feed div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f1ebe1;font-size:13px}
+.feed div.nw{animation:fl 1.2s}
+@keyframes fl{from{background:#fff1c2}}
+/* scan */
+.scan{display:grid;grid-template-columns:420px 1fr;gap:20px;align-items:start}
+.cam{background:#000;border-radius:24px;aspect-ratio:3/4;position:relative;overflow:hidden;display:grid;place-items:center}
+.cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cam .fr{width:62%;aspect-ratio:1;border:3px solid #fff;border-radius:18px;position:relative;z-index:2;box-shadow:0 0 0 999px #0007}
+.cam .ln{position:absolute;left:8%;right:8%;height:2px;background:var(--acc);box-shadow:0 0 12px var(--acc);animation:scl 2s ease-in-out infinite}
+@keyframes scl{0%,100%{top:10%}50%{top:88%}}
+.cam .res{position:absolute;inset:0;z-index:3;display:grid;place-items:center;text-align:center;color:#fff;opacity:0;transition:opacity .2s;padding:20px}
+.cam .res.on{opacity:1}
+.cam .res.ok{background:#1f9d55f2}.cam .res.ko{background:#d6332af2}.cam .res.wn{background:#e39b12f2}
+.cam .res b{font:900 46px/1 'Big Shoulders Display';text-transform:uppercase;display:block;margin:10px 0 6px}
+.cam .ph{color:#ffffff99;position:absolute;bottom:16px;left:0;right:0;text-align:center;font-size:13px;z-index:2}
+.sim{background:var(--paper);border-radius:16px;padding:18px}
+.sim button.t{display:flex;justify-content:space-between;width:100%;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px;text-align:left}
+.sim button.t:hover{border-color:var(--ink)}
+.btn{border:1.5px solid var(--ink);background:none;border-radius:12px;padding:10px 16px;font-weight:700}
+.btn.p{background:var(--ink);color:#fff}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;opacity:0;transition:.3s;z-index:50;font-weight:700}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (max-width:900px){.hero .in,.buy,.two,.scan{grid-template-columns:1fr}.hero .in{padding:40px 18px 50px}.wrap{padding:28px 16px}.kp{grid-template-columns:1fr 1fr}.cart{position:static}nav button{padding:8px 11px;font-size:13px}.cam{max-width:420px;width:100%;margin:auto}}
+</style>
+</head>
+<body>
+<nav><button class="on" data-v="pub">Billetterie</button><button data-v="mes">Mes billets <span id="nb"></span></button><button data-v="org">Organisateur</button><button data-v="scan">Contrôle</button></nav>
+<section class="view on" id="v-pub">
+ <div class="hero"><svg class="poster" id="poster" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1200 600"></svg>
+  <div class="in"><div><span style="color:var(--yel);font-weight:800;letter-spacing:.2em;font-size:12px">FESTIVAL DES MUSIQUES URBAINES · 5E ÉDITION</span><h1>Ngoma<span>Fest 26</span></h1>
+   <div class="meta"><div><b>12 – 13 déc.</b><small>2026, dès 16 h</small></div><div><b>Esplanade du Wouri</b><small>Bonanjo, Douala</small></div><div><b>14 artistes</b><small>2 scènes</small></div></div></div>
+   <div class="lineup"><div>Kidi Mbappé <small>sam. 22 h</small></div><div>Les Bantous du Nkam <small>sam. 20 h</small></div><div>Asso’Bikutsi <small>dim. 21 h</small></div><div>Lady Ponce Jr <small>dim. 19 h</small></div><div style="border:0;color:#b9b1a5;font-size:18px">+ 10 artistes et DJ</div></div></div></div>
+ <div class="wrap"><div class="buy"><div><h2>Billets</h2><div id="types"></div><p style="color:var(--mute);font-size:13px;margin-top:8px">Billets nominatifs, contrôlés à l'entrée par QR code. Gratuit pour les moins de 10 ans accompagnés.</p></div>
+  <div class="cart" id="cart"></div></div></div>
+</section>
+<section class="view" id="v-mes"><div class="wrap"><h2 class="disp" style="font-size:44px">Mes billets</h2><p style="color:var(--mute)">Présentez le QR code à l'entrée, sur votre téléphone ou imprimé.</p><div class="tix" id="tix"></div></div></section>
+<section class="view" id="v-org"><div class="wrap"><h2 class="disp" style="font-size:44px;margin-bottom:14px">Tableau de bord</h2>
+ <div class="kp"><div><span>Billets vendus</span><b id="o1"></b></div><div><span>Recettes</span><b id="o2"></b></div><div><span>Remplissage</span><b id="o3"></b></div><div><span>Entrées validées</span><b id="o4"></b></div></div>
+ <div class="two"><div class="card chart"><h3>Ventes des 30 derniers jours</h3><div id="ch"></div></div><div class="card"><h3>Jauge par catégorie</h3><div id="caps"></div><h3 style="margin-top:16px">Dernières ventes</h3><div class="feed" id="feed"></div></div></div></div></section>
+<section class="view" id="v-scan"><div class="wrap"><h2 class="disp" style="font-size:44px;margin-bottom:14px">Contrôle d'accès · Porte A</h2>
+ <div class="scan"><div class="cam" id="cam"><video id="vid" playsinline muted></video><div class="fr"><div class="ln"></div></div><div class="ph" id="cph">Caméra désactivée : utilisez la liste à droite pour simuler un scan</div><div class="res" id="res"></div></div>
+ <div class="sim"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap"><b>Billets à présenter</b><button class="btn p" id="camb">Activer la caméra</button></div><div id="sim"></div><p style="color:var(--mute);font-size:12.5px;margin-top:6px">Le contrôle vérifie la signature du code, l'événement, le jour d'accès et refuse un billet déjà utilisé.</p></div></div></div></section>
+<div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const F=n=>n.toLocaleString('fr-FR').replace(/ /g,' ')+' F';
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._);t._=setTimeout(()=>t.classList.remove('on'),2400)}
+// affiche générative
+(()=>{let s='<rect width="1200" height="600" fill="#141210"/>';const C=['#ff4d2e','#ffd23f','#2e6bff','#f6f1e9'];for(let i=0;i<9;i++){const x=640+(i%3)*190,y=90+Math.floor(i/3)*190;s+=`<g transform="translate(${x} ${y})" opacity=".09">${[80,60,40,20].map((r,k)=>`<circle r="${r}" fill="${C[(i+k)%4]}"/>`).join('')}</g>`}
+ for(let i=0;i<26;i++)s+=`<rect x="${i*46}" y="${560-((i*37)%90)}" width="30" height="${(i*37)%90+40}" fill="#ff4d2e" opacity=".14"/>`;$('#poster').innerHTML=s})();
+const TY=[{k:'eb',n:'Early bird · 1 jour',d:'Épuisé en 48 h',p:5000,cap:800,sold:800},{k:'j1',n:'Pass 1 jour',d:'Samedi ou dimanche',p:8000,cap:4000,sold:2614},{k:'j2',n:'Pass 2 jours',d:'Accès les deux soirs',p:14000,cap:2500,sold:1873},{k:'vip',n:'VIP 2 jours',d:'Espace lounge, bar privé, accès backstage',p:45000,cap:300,sold:271}];
+let Q={j1:0,j2:2,vip:0},day='sam',pay='om',T=[],state='cart',checkins=1938;
+// signature simple pour détecter un faux billet
+const sig=s=>{let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))%9973;return String(h).padStart(4,'0')};
+const code=(id,k)=>{const b=`NGM26-${k.toUpperCase()}-${id}`;return b+'-'+sig(b)};
+function types(){$('#types').innerHTML=TY.map(t=>{const left=t.cap-t.sold-(Q[t.k]||0),so=left<=0&&!Q[t.k];return `<div class="tk ${so?'so':''}"><div><b>${t.n}</b><small>${t.d}</small>${!so&&left<60?`<span class="left">Plus que ${left} places</span>`:''}</div><div style="text-align:right"><div class="pr">${F(t.p)}</div>${so?'<b style="color:var(--acc)">ÉPUISÉ</b>':`<div class="qty"><button data-k="${t.k}" data-d="-1" aria-label="Moins">−</button><b>${Q[t.k]||0}</b><button data-k="${t.k}" data-d="1" aria-label="Plus">+</button></div>`}</div></div>`}).join('');cart()}
+$('#types').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;const k=b.dataset.k;Q[k]=Math.max(0,Math.min(8,(Q[k]||0)+ +b.dataset.d));types()};
+const total=()=>TY.reduce((a,t)=>a+(Q[t.k]||0)*t.p,0),count=()=>Object.values(Q).reduce((a,b)=>a+b,0);
+function cart(){const n=count(),fee=n*300;if(state==='pay'){$('#cart').innerHTML=`<h3>Paiement</h3><div class="spin"></div><p style="text-align:center;color:var(--mute)">Validez la demande de ${F(total()+fee)} sur votre téléphone…</p>`;return}
+ $('#cart').innerHTML=`<h3>Votre commande</h3>${n?TY.filter(t=>Q[t.k]).map(t=>`<div class="cl"><span>${Q[t.k]} × ${t.n}</span><b>${F(Q[t.k]*t.p)}</b></div>`).join('')+`<div class="cl"><span>Frais de service</span><span>${F(fee)}</span></div>`:'<p style="color:var(--mute);margin:10px 0">Choisissez vos billets.</p>'}
+ <div class="tot"><span>Total</span><b>${F(total()+fee)}</b></div>${Q.j1?`<label class="f">Jour du pass 1 jour<select id="day" style="border:1.5px solid var(--line);border-radius:10px;padding:10px"><option value="sam" ${day==='sam'?'selected':''}>Samedi 12 déc.</option><option value="dim" ${day==='dim'?'selected':''}>Dimanche 13 déc.</option></select></label>`:''}
+ <label class="f">Nom sur les billets<input id="nm" value="Fabrice Nana"></label><label class="f">Téléphone Mobile Money<input id="tel" value="6 77 88 99 00"></label>
+ <div class="pm">${[['om','Orange Money','#ff7900','#fff','OM'],['momo','MTN MoMo','#ffcc00','#141210','MoMo']].map(([k,n,b,c,l])=>`<button data-p="${k}" class="${pay===k?'on':''}"><i style="background:${b};color:${c}">${l}</i>${n}</button>`).join('')}</div>
+ <button class="big" id="go" ${n?'':'disabled'}>Payer ${F(total()+fee)}</button>`;
+ $$('[data-p]').forEach(b=>b.onclick=()=>{pay=b.dataset.p;cart()});if($('#day'))$('#day').onchange=e=>day=e.target.value;$('#go').onclick=buy}
+function buy(){const nm=$('#nm').value.trim()||'Invité';state='pay';cart();setTimeout(()=>{TY.forEach(t=>{for(let i=0;i<(Q[t.k]||0);i++){const id=String(48210+T.length+Math.floor(Math.random()*90)).padStart(6,'0');T.push({id,k:t.k,n:t.n,nm,day:t.k==='j1'?day:'2j',c:code(id,t.k),used:false,t:Date.now()});t.sold++}});
+ feedAdd(`${nm} · ${count()} billet${count()>1?'s':''}`,total());Q={j1:0,j2:0,vip:0};state='cart';types();$('#nb').textContent=`(${T.length})`;view('mes');toast('Paiement confirmé · billets envoyés par SMS et e-mail')},2000)}
+window.__acheter=buy;
+function qr(txt){const q=qrcode(0,'M');q.addData(txt);q.make();return q.createImgTag(5,0)}
+function tix(){$('#tix').innerHTML=T.length?T.map((t,i)=>`<div class="et ${t.used?'used':''}" style="animation-delay:${i*.12}s"><div class="top"><small>NGOMA FEST 26 · ESPLANADE DU WOURI</small><b>${t.n.replace(' · 1 jour','')}</b><small>${t.day==='sam'?'Samedi 12 décembre':t.day==='dim'?'Dimanche 13 décembre':'12 et 13 décembre'} · portes 16 h</small></div><div class="cut"></div>
+ <div class="bd"><div class="kv"><span>Titulaire</span><b>${t.nm}</b><span>Billet n°</span><b>${t.id}</b><span>Entrée</span><b>${t.k==='vip'?'Porte VIP':'Porte A ou B'}</b></div><div class="qr">${qr(t.c)}</div></div></div>`).join(''):'<p style="color:var(--mute)">Aucun billet pour le moment.</p>'}
+// organisateur
+const FEED=[];function feedAdd(t,v){FEED.unshift({t,v,nw:true,at:new Date()});if(FEED.length>6)FEED.pop()}
+['Aline M. · 2 billets|16000','Junior T. · 1 billet|45000','Rosine N. · 4 billets|56000','Kevin E. · 1 billet|8000'].forEach((x,i)=>{const [t,v]=x.split('|');FEED.push({t,v:+v,at:new Date(Date.now()-(i+1)*7e5)})});
+function org(){const sold=TY.reduce((a,t)=>a+t.sold,0),cap=TY.reduce((a,t)=>a+t.cap,0),rev=TY.reduce((a,t)=>a+t.sold*t.p,0);
+ $('#o1').textContent=sold.toLocaleString('fr-FR');$('#o2').textContent=(rev/1e6).toFixed(1).replace('.',',')+' M F';$('#o3').textContent=Math.round(sold/cap*100)+' %';$('#o4').textContent=(checkins+T.filter(t=>t.used).length).toLocaleString('fr-FR');
+ $('#caps').innerHTML=TY.map((t,i)=>`<div class="cap"><div class="h"><span>${t.n}</span><b>${t.sold} / ${t.cap}</b></div><i><u style="width:${t.sold/t.cap*100}%;background:${['#7a7268','#ff4d2e','#2e6bff','#141210'][i]}"></u></i></div>`).join('');
+ $('#feed').innerHTML=FEED.map(f=>`<div class="${f.nw?'nw':''}"><span>${f.t}</span><b>${F(f.v)}</b></div>`).join('');FEED.forEach(f=>f.nw=false);
+ let r=31;const rnd=()=>(r=(r*9301+49297)%233280)/233280;const D=[...Array(30)].map((_,i)=>Math.round(60+i*6+rnd()*90+(i===2||i===3?380:0)+(i>24?160:0)));D[29]+=T.length;const mx=Math.max(...D),W=640,H=230,bw=W/30;
+ $('#ch').innerHTML=`<svg viewBox="0 0 ${W} ${H+24}">${[0,.5,1].map(k=>`<line x1="0" x2="${W}" y1="${H-k*H*.9}" y2="${H-k*H*.9}" stroke="#efe8dc"/><text x="2" y="${H-k*H*.9-4}" font-size="11" fill="#7a7268">${Math.round(mx*k)}</text>`).join('')}${D.map((v,i)=>`<rect x="${i*bw+2}" y="${H-v/mx*H*.9}" width="${bw-4}" height="${v/mx*H*.9}" rx="3" fill="${i===29?'#ff4d2e':i===2||i===3?'#ffd23f':'#141210'}"><title>${v} billets</title></rect>`).join('')}<text x="${3*bw}" y="${H-D[3]/mx*H*.9-8}" font-size="11.5" font-weight="700" fill="#141210">Annonce de la tête d'affiche</text><text x="${W-2}" y="${H+18}" text-anchor="end" font-size="11" fill="#7a7268">aujourd'hui</text><text x="0" y="${H+18}" font-size="11" fill="#7a7268">il y a 30 j</text></svg>`}
+// contrôle
+const FAKE=[{c:'NGM26-J2-047731-'+sig('NGM26-J2-047731'),lab:'Pass 2 jours · Mireille O.'},{c:'NGM26-VIP-048002-0000',lab:'Billet falsifié (signature fausse)'},{c:'NGM26-J1-046120-'+sig('NGM26-J1-046120'),lab:'Pass 1 jour · Paul E. (dimanche)'}];
+const usedSet=new Set();
+function check(c){const res=$('#res'),m=/^NGM26-([A-Z0-9]+)-(\d{6})-(\d{4})$/.exec(c);let cls,ttl,sub;
+ if(!m||sig(`NGM26-${m[1]}-${m[2]}`)!==m[3]){cls='ko';ttl='Refusé';sub='Code invalide ou falsifié'}
+ else if(usedSet.has(c)){cls='wn';ttl='Déjà utilisé';sub='Ce billet a été scanné il y a quelques instants'}
+ else if(c===FAKE[2].c){cls='ko';ttl='Mauvais jour';sub='Pass valable le dimanche 13 décembre'}
+ else{usedSet.add(c);const t=T.find(x=>x.c===c);if(t)t.used=true;cls='ok';ttl='Entrée validée';sub=t?`${t.n} · ${t.nm}`:'Pass 2 jours · Mireille O.'}
+ res.className='res on '+cls;res.innerHTML=`<div><svg width="64" height="64" viewBox="0 0 24 24">${cls==='ok'?'<path d="M5 12l5 5 9-10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>':cls==='wn'?'<path d="M12 6v8M12 17v1" stroke="#fff" stroke-width="3" stroke-linecap="round"/>':'<path d="M6 6l12 12M18 6 6 18" stroke="#fff" stroke-width="3" stroke-linecap="round"/>'}</svg><b>${ttl}</b>${sub}</div>`;
+ if(navigator.vibrate)navigator.vibrate(cls==='ok'?80:[60,60,60]);clearTimeout(res._);res._=setTimeout(()=>res.classList.remove('on'),2200);sim()}
+function sim(){$('#sim').innerHTML=[...T.map(t=>({c:t.c,lab:`${t.n} · ${t.nm}`})),...FAKE].map(x=>`<button class="t" data-c="${x.c}"><span>${x.lab}</span><span style="color:var(--mute)">${usedSet.has(x.c)?'déjà scanné':'scanner'}</span></button>`).join('')}
+$('#sim').onclick=e=>{const b=e.target.closest('[data-c]');if(b)check(b.dataset.c)};window.__scan=i=>check(i<0?FAKE[-i-1].c:T[i].c);
+let stream=null;
+$('#camb').onclick=async()=>{if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;$('#camb').textContent='Activer la caméra';$('#cph').style.display='';return}
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const v=$('#vid');v.srcObject=stream;await v.play();$('#camb').textContent='Arrêter la caméra';$('#cph').style.display='none';
+  const c=document.createElement('canvas'),g=c.getContext('2d',{willReadFrequently:true});let last='';
+  (function tick(){if(!stream)return;if(v.readyState===4){c.width=v.videoWidth;c.height=v.videoHeight;g.drawImage(v,0,0);const r=jsQR(g.getImageData(0,0,c.width,c.height).data,c.width,c.height);if(r&&r.data!==last){last=r.data;check(r.data);setTimeout(()=>last='',2500)}}requestAnimationFrame(tick)})()}
+ catch(e){toast('Caméra indisponible : utilisez la simulation')}};
+function view(v){$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));$$('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));if(v==='mes')tix();if(v==='org')org();if(v==='scan')sim();scrollTo(0,0)}
+window.view=view;$$('nav button').forEach(b=>b.onclick=()=>view(b.dataset.v));
+types();
+</script>
+</body>
+</html>

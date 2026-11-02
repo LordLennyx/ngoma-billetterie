@@ -1,0 +1,23 @@
+{
+ "titre": "<em>Ngoma Fest</em>, billetterie",
+ "type": "Billetterie en ligne · contrôle d'accès",
+ "sous_titre": "Billets, Mobile Money, e-billets à QR code, tableau de bord, scan à l'entrée",
+ "couleur": "#141210",
+ "graine": 31,
+ "voix": [
+  [3.3, "Une billetterie complète pour festivals, concerts et conférences,"],
+  [8.2, "le public paie par Mobile Money et reçoit des billets à QR code,"],
+  [14.6, "l'organisateur suit ses ventes en direct, et à l'entrée, chaque billet se scanne, les faux sont refusés."]
+ ],
+ "etapes": [
+  {"t": "wait", "ms": 800},
+  {"t": "eval", "js": "document.querySelector('.buy').scrollIntoView({behavior:'smooth'})", "pause": 900},
+  {"t": "click", "sel": "[data-k=vip][data-d='1']", "pause": 900},
+  {"t": "click", "sel": "#go", "pause": 3600},
+  {"t": "click", "sel": "nav button[data-v=org]", "pause": 2400},
+  {"t": "click", "sel": "nav button[data-v=scan]", "pause": 700},
+  {"t": "eval", "js": "window.__scan(0)", "pause": 2300},
+  {"t": "eval", "js": "window.__scan(0)", "pause": 2300},
+  {"t": "eval", "js": "window.__scan(-2)", "pause": 2300}
+ ]
+}
