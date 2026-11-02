@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Ngoma — billetterie et contrôle d'accès</title>
-<meta name="description" content="Billetterie en ligne d'un festival : choix des billets, paiement Mobile Money, e-billet avec QR code, tableau de bord organisateur et contrôle d'accès par scan.">
+<meta name="description" content="Billetterie en ligne d'un festival : choix des billets, paiement par carte, e-billet avec QR code, tableau de bord organisateur et contrôle d'accès par scan.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23141210'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23ff4d2e' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23ffd23f'/%3E%3C/svg%3E">
@@ -111,7 +111,7 @@ nav button.on{background:var(--ink);color:#fff}
 <section class="view on" id="v-pub">
  <div class="hero"><svg class="poster" id="poster" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1200 600"></svg>
   <div class="in"><div><span style="color:var(--yel);font-weight:800;letter-spacing:.2em;font-size:12px">FESTIVAL DES MUSIQUES URBAINES · 5E ÉDITION</span><h1>Ngoma<span>Fest 26</span></h1>
-   <div class="meta"><div><b>12 – 13 déc.</b><small>2026, dès 16 h</small></div><div><b>Esplanade du Wouri</b><small>Bonanjo, Douala</small></div><div><b>14 artistes</b><small>2 scènes</small></div></div></div>
+   <div class="meta"><div><b>12 – 13 déc.</b><small>2026, dès 16 h</small></div><div><b>Quai de la Loire</b><small>Paris 19e</small></div><div><b>14 artistes</b><small>2 scènes</small></div></div></div>
    <div class="lineup"><div>Kidi Mbappé <small>sam. 22 h</small></div><div>Les Bantous du Nkam <small>sam. 20 h</small></div><div>Asso’Bikutsi <small>dim. 21 h</small></div><div>Lady Ponce Jr <small>dim. 19 h</small></div><div style="border:0;color:#b9b1a5;font-size:18px">+ 10 artistes et DJ</div></div></div></div>
  <div class="wrap"><div class="buy"><div><h2>Billets</h2><div id="types"></div><p style="color:var(--mute);font-size:13px;margin-top:8px">Billets nominatifs, contrôlés à l'entrée par QR code. Gratuit pour les moins de 10 ans accompagnés.</p></div>
   <div class="cart" id="cart"></div></div></div>
@@ -128,24 +128,24 @@ nav button.on{background:var(--ink);color:#fff}
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
-const F=n=>n.toLocaleString('fr-FR').replace(/ /g,' ')+' F';
+const F=n=>(Math.round(n*100)/100).toLocaleString('fr-FR',{minimumFractionDigits:n%1?2:0,maximumFractionDigits:2}).replace(/ /g,' ')+' €';
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._);t._=setTimeout(()=>t.classList.remove('on'),2400)}
 // affiche générative
 (()=>{let s='<rect width="1200" height="600" fill="#141210"/>';const C=['#ff4d2e','#ffd23f','#2e6bff','#f6f1e9'];for(let i=0;i<9;i++){const x=640+(i%3)*190,y=90+Math.floor(i/3)*190;s+=`<g transform="translate(${x} ${y})" opacity=".09">${[80,60,40,20].map((r,k)=>`<circle r="${r}" fill="${C[(i+k)%4]}"/>`).join('')}</g>`}
  for(let i=0;i<26;i++)s+=`<rect x="${i*46}" y="${560-((i*37)%90)}" width="30" height="${(i*37)%90+40}" fill="#ff4d2e" opacity=".14"/>`;$('#poster').innerHTML=s})();
-const TY=[{k:'eb',n:'Early bird · 1 jour',d:'Épuisé en 48 h',p:5000,cap:800,sold:800},{k:'j1',n:'Pass 1 jour',d:'Samedi ou dimanche',p:8000,cap:4000,sold:2614},{k:'j2',n:'Pass 2 jours',d:'Accès les deux soirs',p:14000,cap:2500,sold:1873},{k:'vip',n:'VIP 2 jours',d:'Espace lounge, bar privé, accès backstage',p:45000,cap:300,sold:271}];
-let Q={j1:0,j2:2,vip:0},day='sam',pay='om',T=[],state='cart',checkins=1938;
+const TY=[{k:'eb',n:'Early bird · 1 jour',d:'Épuisé en 48 h',p:29,cap:800,sold:800},{k:'j1',n:'Pass 1 jour',d:'Samedi ou dimanche',p:45,cap:4000,sold:2614},{k:'j2',n:'Pass 2 jours',d:'Accès les deux soirs',p:79,cap:2500,sold:1873},{k:'vip',n:'VIP 2 jours',d:'Espace lounge, bar privé, accès backstage',p:189,cap:300,sold:271}];
+let Q={j1:0,j2:2,vip:0},day='sam',pay='cb',T=[],state='cart',checkins=1938;
 // signature simple pour détecter un faux billet
 const sig=s=>{let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))%9973;return String(h).padStart(4,'0')};
 const code=(id,k)=>{const b=`NGM26-${k.toUpperCase()}-${id}`;return b+'-'+sig(b)};
 function types(){$('#types').innerHTML=TY.map(t=>{const left=t.cap-t.sold-(Q[t.k]||0),so=left<=0&&!Q[t.k];return `<div class="tk ${so?'so':''}"><div><b>${t.n}</b><small>${t.d}</small>${!so&&left<60?`<span class="left">Plus que ${left} places</span>`:''}</div><div style="text-align:right"><div class="pr">${F(t.p)}</div>${so?'<b style="color:var(--acc)">ÉPUISÉ</b>':`<div class="qty"><button data-k="${t.k}" data-d="-1" aria-label="Moins">−</button><b>${Q[t.k]||0}</b><button data-k="${t.k}" data-d="1" aria-label="Plus">+</button></div>`}</div></div>`}).join('');cart()}
 $('#types').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;const k=b.dataset.k;Q[k]=Math.max(0,Math.min(8,(Q[k]||0)+ +b.dataset.d));types()};
 const total=()=>TY.reduce((a,t)=>a+(Q[t.k]||0)*t.p,0),count=()=>Object.values(Q).reduce((a,b)=>a+b,0);
-function cart(){const n=count(),fee=n*300;if(state==='pay'){$('#cart').innerHTML=`<h3>Paiement</h3><div class="spin"></div><p style="text-align:center;color:var(--mute)">Validez la demande de ${F(total()+fee)} sur votre téléphone…</p>`;return}
+function cart(){const n=count(),fee=n*1.5;if(state==='pay'){$('#cart').innerHTML=`<h3>Paiement</h3><div class="spin"></div><p style="text-align:center;color:var(--mute)">Validation 3-D Secure de ${F(total()+fee)} dans votre application bancaire…</p>`;return}
  $('#cart').innerHTML=`<h3>Votre commande</h3>${n?TY.filter(t=>Q[t.k]).map(t=>`<div class="cl"><span>${Q[t.k]} × ${t.n}</span><b>${F(Q[t.k]*t.p)}</b></div>`).join('')+`<div class="cl"><span>Frais de service</span><span>${F(fee)}</span></div>`:'<p style="color:var(--mute);margin:10px 0">Choisissez vos billets.</p>'}
  <div class="tot"><span>Total</span><b>${F(total()+fee)}</b></div>${Q.j1?`<label class="f">Jour du pass 1 jour<select id="day" style="border:1.5px solid var(--line);border-radius:10px;padding:10px"><option value="sam" ${day==='sam'?'selected':''}>Samedi 12 déc.</option><option value="dim" ${day==='dim'?'selected':''}>Dimanche 13 déc.</option></select></label>`:''}
- <label class="f">Nom sur les billets<input id="nm" value="Fabrice Nana"></label><label class="f">Téléphone Mobile Money<input id="tel" value="6 77 88 99 00"></label>
- <div class="pm">${[['om','Orange Money','#ff7900','#fff','OM'],['momo','MTN MoMo','#ffcc00','#141210','MoMo']].map(([k,n,b,c,l])=>`<button data-p="${k}" class="${pay===k?'on':''}"><i style="background:${b};color:${c}">${l}</i>${n}</button>`).join('')}</div>
+ <label class="f">Nom sur les billets<input id="nm" value="Fabrice Nana"></label><label class="f">Téléphone (billets par SMS)<input id="tel" value="06 77 88 99 00"></label>
+ <div class="pm">${[['cb','Carte bancaire','#1f4fd1','#fff','CB'],['apple','Apple Pay','#141210','#fff','Pay']].map(([k,n,b,c,l])=>`<button data-p="${k}" class="${pay===k?'on':''}"><i style="background:${b};color:${c}">${l}</i>${n}</button>`).join('')}</div>
  <button class="big" id="go" ${n?'':'disabled'}>Payer ${F(total()+fee)}</button>`;
  $$('[data-p]').forEach(b=>b.onclick=()=>{pay=b.dataset.p;cart()});if($('#day'))$('#day').onchange=e=>day=e.target.value;$('#go').onclick=buy}
 function buy(){const nm=$('#nm').value.trim()||'Invité';state='pay';cart();setTimeout(()=>{TY.forEach(t=>{for(let i=0;i<(Q[t.k]||0);i++){const id=String(48210+T.length+Math.floor(Math.random()*90)).padStart(6,'0');T.push({id,k:t.k,n:t.n,nm,day:t.k==='j1'?day:'2j',c:code(id,t.k),used:false,t:Date.now()});t.sold++}});
@@ -158,7 +158,7 @@ function tix(){$('#tix').innerHTML=T.length?T.map((t,i)=>`<div class="et ${t.use
 const FEED=[];function feedAdd(t,v){FEED.unshift({t,v,nw:true,at:new Date()});if(FEED.length>6)FEED.pop()}
 ['Aline M. · 2 billets|16000','Junior T. · 1 billet|45000','Rosine N. · 4 billets|56000','Kevin E. · 1 billet|8000'].forEach((x,i)=>{const [t,v]=x.split('|');FEED.push({t,v:+v,at:new Date(Date.now()-(i+1)*7e5)})});
 function org(){const sold=TY.reduce((a,t)=>a+t.sold,0),cap=TY.reduce((a,t)=>a+t.cap,0),rev=TY.reduce((a,t)=>a+t.sold*t.p,0);
- $('#o1').textContent=sold.toLocaleString('fr-FR');$('#o2').textContent=(rev/1e6).toFixed(1).replace('.',',')+' M F';$('#o3').textContent=Math.round(sold/cap*100)+' %';$('#o4').textContent=(checkins+T.filter(t=>t.used).length).toLocaleString('fr-FR');
+ $('#o1').textContent=sold.toLocaleString('fr-FR');$('#o2').textContent=Math.round(rev/1000).toLocaleString('fr-FR')+' k€';$('#o3').textContent=Math.round(sold/cap*100)+' %';$('#o4').textContent=(checkins+T.filter(t=>t.used).length).toLocaleString('fr-FR');
  $('#caps').innerHTML=TY.map((t,i)=>`<div class="cap"><div class="h"><span>${t.n}</span><b>${t.sold} / ${t.cap}</b></div><i><u style="width:${t.sold/t.cap*100}%;background:${['#7a7268','#ff4d2e','#2e6bff','#141210'][i]}"></u></i></div>`).join('');
  $('#feed').innerHTML=FEED.map(f=>`<div class="${f.nw?'nw':''}"><span>${f.t}</span><b>${F(f.v)}</b></div>`).join('');FEED.forEach(f=>f.nw=false);
  let r=31;const rnd=()=>(r=(r*9301+49297)%233280)/233280;const D=[...Array(30)].map((_,i)=>Math.round(60+i*6+rnd()*90+(i===2||i===3?380:0)+(i>24?160:0)));D[29]+=T.length;const mx=Math.max(...D),W=640,H=230,bw=W/30;

@@ -1,12 +1,12 @@
 {
  "titre": "<em>Ngoma Fest</em>, billetterie",
  "type": "Billetterie en ligne · contrôle d'accès",
- "sous_titre": "Billets, Mobile Money, e-billets à QR code, tableau de bord, scan à l'entrée",
+ "sous_titre": "Billets, paiement par carte, e-billets à QR code, tableau de bord, scan à l'entrée",
  "couleur": "#141210",
  "graine": 31,
  "voix": [
   [3.3, "Une billetterie complète pour festivals, concerts et conférences,"],
-  [8.2, "le public paie par Mobile Money et reçoit des billets à QR code,"],
+  [8.2, "le public paie par carte et reçoit des billets à QR code,"],
   [14.6, "l'organisateur suit ses ventes en direct, et à l'entrée, chaque billet se scanne, les faux sont refusés."]
  ],
  "etapes": [
